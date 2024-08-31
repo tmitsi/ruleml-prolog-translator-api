@@ -1,0 +1,121 @@
+openapi: 3.0.0
+info:
+  title: RuleML Prolog Translator API
+  version: 0.1.0
+  description: 'API for the RuleML <-> Prolog translator.'
+servers:
+  - url: 'http://localhost:8080'
+    description: Local development instance.
+paths:
+  /metadata:
+    get:
+      operationId: getMetadata
+      summary: Get OpenAPI description of this API.
+      responses:
+        '200':
+          description: API metadata
+          content:
+            text/plain:
+              schema:
+                type: string
+  /ping:
+    get:
+      operationId: ping
+      summary: Checks if the server is running.
+      responses:
+        '200':
+          description: Server is up and running.
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /toRuleML:
+    get:
+      operationId: getRuleMLTranslation
+      summary: Returns the RuleML translation of the given Prolog input.
+      parameters:
+        - name: kb
+          in: query
+          description: The Prolog source KB.
+          schema:
+            type: string
+            default: ""
+        - name: queries
+          in: query
+          description: The Prolog queries.
+          schema:
+            type: string
+            default: ""
+        - name: pprint
+          in: query
+          description: Ask for a pretty-printed result
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: The translated RuleML text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuleML"
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+      tags:
+        - translation
+  /toProlog:
+    get:
+      operationId: getPrologTranslation
+      summary: Returns the Prolog translation of the given RuleML input.
+      parameters:
+        - name: ruleMLText
+          in: query
+          description: The RuleML source.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The translated Prolog text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prolog"
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+      tags:
+        - translation
+
+components:
+  schemas:
+    Prolog:
+      type: object
+      properties:
+        kb:
+          type: string
+        queries:
+          type: string
+        messages:
+          type: string
+    RuleML:
+      type: object
+      properties:
+        xml:
+          type: string
+        messages:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      required:
+        - code
+        - message
+  responses:
+    UnexpectedError:
+      description: Unexpected error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
